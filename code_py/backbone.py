@@ -12,30 +12,29 @@ from sklearn.model_selection import KFold
 from code_py.DIAMOnD import *
 from code_py.backbone import *
 from sklearn.preprocessing import normalize
-sys_path = "/Users/alessandroquattrociocchi/Documents/Courses /2/2.1/BI/final project/"
+sys_path = "/Users/tanselsimsek/Desktop/DS/2.1/BI/Final_project/"
 data_path = sys_path + "data/"
 
 class Disease_Genes_Graph:
 
-    def __init__(self,folder_path="/Users/alessandroquattrociocchi/Documents/Courses /2/2.1/BI/final project/"):
+    def __init__(self,folder_path= sys_path):
         self.folder_path = folder_path
         self.data_path   = folder_path + "data/"
         self.columns = ['Official Symbol Interactor A','Official Symbol Interactor B']
         super(Disease_Genes_Graph, self).__init__()
         
-    
-    def preprocessing_dataset(self,homo_sap=True,drop_duplicates=True,remove_self_loops=True):
+    def preprocessing_dataset(self, homo_sap=True, drop_duplicates=True, remove_self_loops=True):
         self.homo_sapiens_genes = pd.read_csv(self.data_path+'BIOGRID-ORGANISM-Homo_sapiens-4.4.204.tab3.txt', sep='\t', header=0,low_memory=False)
         if homo_sap:
-            self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes["Organism Name Interactor A"]=='Homo sapiens') & (self.homo_sapiens_genes["Organism Name Interactor B"]=='Homo sapiens')]
-            self.homo_sapiens_genes = self.homo_sapiens_genes[self.columns]
+            self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes["Experimental System Type"]=='physical')]
+            self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes["Organism ID Interactor A"]==9606) & (self.homo_sapiens_genes["Organism ID Interactor B"]==9606)]
         if drop_duplicates:
             self.homo_sapiens_genes = self.homo_sapiens_genes.drop_duplicates()
         if remove_self_loops:
             self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes['Official Symbol Interactor A'] != self.homo_sapiens_genes['Official Symbol Interactor B'])]
         print("Number of putative genes:",self.homo_sapiens_genes.shape[0])
         return self.homo_sapiens_genes
-
+        
     def query_disease_genes(self,diseaseId):
         #"C1510586"
         self.diseases = pd.read_csv(self.data_path+"curated_gene_disease_associations.tsv", sep='\t')
