@@ -244,7 +244,7 @@ def reduce_not_in_cluster_nodes(all_degrees, neighbors, G, not_in_cluster, clust
 # ======================================================================================
 #   C O R E    A L G O R I T H M
 # ======================================================================================
-def diamond_iteration_of_first_X_nodes(G, S, X, alpha):
+def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE):
     """
     Parameters:
     ----------
@@ -263,6 +263,22 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha):
       * kb   : number of +1 neighbors
       * p    : p-value at agglomeration
     """
+    # If we apply DiaBLE, we will create our own graph based on the DiaBLE universe
+    if DiaBLE:
+        # The current disease module(seed set)
+        G_sub_graph = G.subgraph(S)
+        G_sub_graph = nx.Graph(G_sub_graph)
+        
+        for iter in range(X):
+            while len(G_sub_graph.nodes) != len(G.nodes):
+                # We first start with the candidate genes (i.e. those having at least a link to the current seed set)
+                #  Then for each iteration, first neighbors of the candidate genes
+                initial_nodes = list(G_sub_graph.nodes)
+                for n in initial_nodes:
+                    neig_of_node = G.neighbors(n)
+                    for new_node in neig_of_node:
+                        G_sub_graph.add_edge(n, new_node)
+        G = G_sub_graph
 
     N = G.number_of_nodes()
 
@@ -366,7 +382,7 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha):
 # ===========================================================================
 
 
-def DIAMOnD(G_original, seed_genes, max_number_of_added_nodes, alpha, outfile=None):
+def DIAMOnD(G_original, seed_genes, max_number_of_added_nodes, alpha, outfile=None, DiaBLE = False):
     """
     Runs the DIAMOnD algorithm
     Input:
@@ -404,7 +420,7 @@ def DIAMOnD(G_original, seed_genes, max_number_of_added_nodes, alpha, outfile=No
     # 2. agglomeration algorithm.
     added_nodes, predicted_nodes = diamond_iteration_of_first_X_nodes(G_original,
                                                      disease_genes,
-                                                     max_number_of_added_nodes, alpha)
+                                                     max_number_of_added_nodes, alpha, DiaBLE)
     # 3. saving the results
 
     return added_nodes, predicted_nodes
