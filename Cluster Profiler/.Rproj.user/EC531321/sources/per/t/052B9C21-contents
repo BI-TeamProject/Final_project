@@ -1,0 +1,89 @@
+lapply(paste('package:',names(sessionInfo()$otherPkgs),sep=""),detach,character.only=TRUE,unload=TRUE)
+
+library("rjson")
+
+#--------------Loading genes from file-------
+json_file_2 <- "Input_data/dense.json"
+dense <- fromJSON(file=json_file_2)
+filter_dense <- dense$`TCGA-BRCA`
+selection = "BRCA"
+#--------------------------------------------
+
+
+#----------- Convert Genes into Symbols for the enrichment
+library(org.Hs.eg.db)
+
+gene_to_ID <- function(my.symbols){ 
+
+  hs <- org.Hs.eg.db
+  symbol_to_id <- select(hs, 
+                         keys = my.symbols,
+                         columns = c("ENTREZID", "SYMBOL"),
+                         keytype = "SYMBOL")
+  
+  x2 <- na.omit(symbol_to_id$ENTREZID)
+  return(x2)
+}
+
+dense_ID        <- gene_to_ID(filter_dense)
+
+#--------------------CLuster Profiler Enrichment
+library(clusterProfiler)
+library(ggplot2)
+
+# Cellular Function Enrichment
+cellular_components <- function(input_genes,organism,class){
+
+  out_folder <- paste("../CC/",class, sep="")
+  dir.create(out_folder)
+  
+  #cellular component
+  ggo <- groupGO(gene = input_genes ,OrgDb=organism,ont="CC", level=3, readable=TRUE)
+  ego <- enrichGO(gene = input_genes,OrgDb =organism, ont="CC", pAdjustMethod="BH", pvalueCutoff  = 0.01,qvalueCutoff  = 0.05,readable=TRUE)
+  
+  ### writing results and plot in CC folder
+  ########################################
+  write.csv(as.data.frame(ggo),"../CC/ggo_CC.csv")
+  write.csv(as.data.frame(ego),"../CC/ego_CC.csv")
+  
+  ########################################
+  png("../CC/barplot_CC_ggo.png",width = 780, height = 480)
+  plt1 <- barplot(ggo, drop=TRUE, showCategory=12)
+  print(plt1)
+  dev.off()
+  ########################################
+  png("../CC/barplot_CC_ego.png",width = 780, height = 480)
+  plt2<-barplot(ego, showCategory=12)
+  print(plt2)
+  dev.off()
+  ########################################
+  png("../CC/dotplot_CC.png",width = 780, height = 480)
+  plt3<-dotplot(ego)
+  print(plt3)
+  dev.off()
+  ########################################
+  png("../CC/cnet_plot_CC.png",width = 780, height = 480)
+  plt4<-cnetplot(ego, categorySize="pvalue")
+  print(plt4)
+  dev.off()
+  ########################################
+}
+
+
+
+cellular_components(input_genes=filter_0_ID,organism='org.Hs.eg.db',class=out_name_filter0)
+
+
+
+
+out_name_filter0 <- paste("filter_0_",selection, sep="")
+biological_process(input_genes=filter_0_ID,organism='org.Hs.eg.db',class=out_name_filter0)
+molecolar_function(input_genes=filter_0_ID,organism='org.Hs.eg.db',class=out_name_filter0)
+cellular_components(input_genes=filter_0_ID,organism='org.Hs.eg.db',class=out_name_filter0)
+
+
+out_name_filter_dense <- paste("dense_",selection, sep="")
+biological_process(input_genes=dense_ID,organism='org.Hs.eg.db',class=out_name_filter_dense)
+molecolar_function(input_genes=dense_ID,organism='org.Hs.eg.db',class=out_name_filter_dense)
+cellular_components(input_genes=dense_ID,organism='org.Hs.eg.db',class=out_name_filter_dense)
+
