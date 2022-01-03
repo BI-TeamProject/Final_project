@@ -136,25 +136,24 @@ class Human_Genes_Graph_Analysis:
         genes_in_all_clusters = []
         TP = 0 
         FP = 0 
-        for e in enriched_clusters_list:
-            ds_genese_as_string = set(itemgetter(*clusters[e])(list(disease_graph.nodes)))
-            genes_in_all_clusters += list(ds_genese_as_string)
-            
-            intersect_cluster_size = len(set(dg_list).intersection(ds_genese_as_string))
-            #number of probe set genes in all enriched clusters
-            TP += len(clusters[e])
-            #number of genes in all enriched cluster which are not seed genes
-            FP += len(clusters[e]) - intersect_cluster_size
+        for fold in dg_list:
+            for e in enriched_clusters_list:
+                ds_genese_as_string = set(itemgetter(*clusters[e])(list(disease_graph.nodes)))
+                genes_in_all_clusters += list(ds_genese_as_string)
+                intersect_cluster_size = len(set(fold).intersection(ds_genese_as_string))
+                #number of probe set genes in all enriched clusters
+                TP += intersect_cluster_size
+                #number of genes in all enriched cluster which are not seed genes
+                FP += len(clusters[e]) - intersect_cluster_size
 
-        #number of probe seed genes not present in any enriched clusters
+            #number of probe seed genes not present in any enriched clusters
 
         FN = len(set(disease_graph.nodes))-len(set(genes_in_all_clusters).intersection(set(disease_graph.nodes)))
-            
         print("TP: " + str(TP) + " --- " + "FP: " +str(FP) + " --- " + "FN: " +str(FN))
         precision=(TP/(TP+FP))
         recall   = ((TP)/(TP+FN))
         f1_score = ((2*precision*recall)/(precision+recall))
-        print("Precision: " + str(round(precision,4)) + " --- " + "Recall: " +str(round(recall,4)) + " --- " + "F1 Score: " +str(round(f1_score,4)))
+        print("Precision: " + str(round(precision,6)) + " --- " + "Recall: " +str(round(recall,6)) + " --- " + "F1 Score: " +str(round(f1_score,6)))
 
 
 
