@@ -45,6 +45,11 @@ class Human_Genes_Graph_Analysis:
         print("Found " + str(len(self.disease_list)) + ' disease genes in ' + str(self.disease_query['diseaseName'].values[0]))
         return self.disease_query,self.disease_list
 
+    def query_disease_genes_extendend(self):
+        self.diseases_ex = pd.read_csv(self.data_path+"all_gene_disease_associations.tsv", sep='\t')
+        self.disease_list_ex = list(self.diseases_ex['geneSymbol'])
+        return self.disease_list_ex
+
     def LCC_to_adj(self,dataframe):
         self.putative_genes_graph = nx.from_pandas_edgelist(dataframe, source = "Official Symbol Interactor A", target = "Official Symbol Interactor B", 
                               create_using=nx.Graph())
@@ -124,8 +129,34 @@ class Human_Genes_Graph_Analysis:
         for c in enriched_cluster_index:
 
             enriched_genes_list.append(set(itemgetter(*clusters[c])(list(disease_graph.nodes))))
-        return pmf_cluster_dict_avg, enriched_genes_list
-        
+        return pmf_cluster_dict_avg, enriched_genes_list, enriched_cluster_index
+    
+    @staticmethod
+    def MCL_evaluation_metrics(disease_graph,dg_list,clusters,enriched_clusters_list):
+        genes_in_all_clusters = []
+        TP = 0 
+        FP = 0 
+        for e in enriched_clusters_list:
+            ds_genese_as_string = set(itemgetter(*clusters[e])(list(disease_graph.nodes)))
+            genes_in_all_clusters += list(ds_genese_as_string)
+            
+            intersect_cluster_size = len(set(dg_list).intersection(ds_genese_as_string))
+            #number of probe set genes in all enriched clusters
+            TP += len(clusters[e])
+            #number of genes in all enriched cluster which are not seed genes
+            FP += len(clusters[e]) - intersect_cluster_size
+
+        #number of probe seed genes not present in any enriched clusters
+
+        FN = len(set(disease_graph.nodes))-len(set(genes_in_all_clusters).intersection(set(disease_graph.nodes)))
+            
+        print("TP: " + str(TP) + " --- " + "FP: " +str(FP) + " --- " + "FN: " +str(FN))
+        precision=(TP/(TP+FP))
+        recall   = ((TP)/(TP+FN))
+        f1_score = ((2*precision*recall)/(precision+recall))
+        print("Precision: " + str(round(precision,4)) + " --- " + "Recall: " +str(round(recall,4)) + " --- " + "F1 Score: " +str(round(f1_score,4)))
+
+
 
         # =========================== Random Walk with restart ========================
     @staticmethod
