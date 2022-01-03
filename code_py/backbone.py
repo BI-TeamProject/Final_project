@@ -12,17 +12,20 @@ from sklearn.model_selection import KFold
 from code_py.DIAMOnD import *
 from code_py.backbone import *
 from sklearn.preprocessing import normalize
-sys_path = "/Users/tanselsimsek/Desktop/DS/2.1/BI/Final_project/"
-data_path = sys_path + "data/"
+from operator import itemgetter
+from scipy.stats import hypergeom
+import pickle
 
-class Disease_Genes_Graph:
+class Human_Genes_Graph_Analysis:
 
-    def __init__(self,folder_path= sys_path):
+    def __init__(self,folder_path,disease_ID):
         self.folder_path = folder_path
         self.data_path   = folder_path + "data/"
+        self.disease_ID = disease_ID
         self.columns = ['Official Symbol Interactor A','Official Symbol Interactor B']
-        super(Disease_Genes_Graph, self).__init__()
-        
+        super(Human_Genes_Graph_Analysis, self).__init__()
+    
+    # =========================== Preprocessing =================================
     def preprocessing_dataset(self, homo_sap=True, drop_duplicates=True, remove_self_loops=True):
         self.homo_sapiens_genes = pd.read_csv(self.data_path+'BIOGRID-ORGANISM-Homo_sapiens-4.4.204.tab3.txt', sep='\t', header=0,low_memory=False)
         if homo_sap:
@@ -35,10 +38,9 @@ class Disease_Genes_Graph:
         print("Number of putative genes:",self.homo_sapiens_genes.shape[0])
         return self.homo_sapiens_genes
         
-    def query_disease_genes(self,diseaseId):
-        #"C1510586"
+    def query_disease_genes(self):
         self.diseases = pd.read_csv(self.data_path+"curated_gene_disease_associations.tsv", sep='\t')
-        self.disease_query =  self.diseases[self.diseases["diseaseId"]==diseaseId]
+        self.disease_query =  self.diseases[self.diseases["diseaseId"]==self.disease_ID]
         self.disease_list = list(self.disease_query['geneSymbol'])
         print("Found " + str(len(self.disease_list)) + ' disease genes in ' + str(self.disease_query['diseaseName'].values[0]))
         return self.disease_query,self.disease_list
@@ -61,20 +63,12 @@ class Disease_Genes_Graph:
         #converting subgraph into the adj matrix 
         self.LCC_sub_graph_adj = nx.adjacency_matrix(self.LCC_sub_graph)
         return self.LCC_sub_graph,self.LCC_sub_graph_adj , self.putative_genes_graph.number_of_nodes(), self.putative_genes_graph.number_of_edges()
+    # =====================================================================
 
+    # ========================= KFold Cross-Validation ====================
     @staticmethod
-    def MCL(adj_mat,inflation):
-        cluster_data = {}
-        count = 0
-        result = mc.run_mcl(adj_mat, inflation=inflation)
-        clusters = mc.get_clusters(result)
-        Q = mc.modularity(matrix=result, clusters=clusters)
-        count += 1
-        return Q
-        
-    @staticmethod
-    def KFold_CV(list,n_folds=10,shuffle_flag=True):
-        kf = KFold(n_splits=n_folds, shuffle=shuffle_flag)
+    def KFold_CV(list,n_folds=5,shuffle_flag=True):
+        kf = KFold(n_splits=n_folds, shuffle=shuffle_flag,random_state=1234567)
         X = np.array(list)
         X_dataset_cv = []
         Y_dataset_cv = []
@@ -82,13 +76,66 @@ class Disease_Genes_Graph:
             X_dataset_cv.append(X[train_index].tolist())
             Y_dataset_cv.append(X[val_index].tolist())
         return X_dataset_cv,Y_dataset_cv
+
+    # =================================== MCL ===============================
+    @staticmethod
+    def MCL(adj_mat,inflation):
+        """
+        """
+        count = 0
+        result = mc.run_mcl(adj_mat, inflation=inflation)
+        clusters = mc.get_clusters(result)
+        Q = mc.modularity(matrix=result, clusters=clusters)
+        count += 1
+        return Q
     
     @staticmethod
-    def RWR(LCC_sub_graph,restart_prob = 0.5,conv_treshold=0.000001,max_print_items= 10):
-        source = list(LCC_sub_graph.nodes())
-        p_0 = [0]*LCC_sub_graph.number_of_nodes()
+    def MLC_eval(disease_graph,disease_genes_list,clusters,tol=0):
+        """
+        """
+        pmf_cluster_dict = {}
+        for folds_index in range(0,5):
+            print("================================================")
+            print("Fold number: ",folds_index )
+            for cluster_index in range(0,len(clusters)): 
+                ds_genese_as_string = set(itemgetter(*clusters[cluster_index])(list(disease_graph.nodes)))
+                intersect_cluster_size = len(set(disease_genes_list[folds_index]).intersection(ds_genese_as_string))
+
+                if intersect_cluster_size > 2:
+                    
+                    [N, K, n] = [19618, len(disease_genes_list[folds_index]), len(ds_genese_as_string)]
+                    rv = hypergeom(N, K, len(clusters[cluster_index]))
+                    pmf_cluster = rv.pmf(intersect_cluster_size)
+                    print(str(intersect_cluster_size) + " disease genes " + "in" + " cluster " + str(cluster_index) + " --> " + str(round(pmf_cluster,6)))
+                    if cluster_index not in list(pmf_cluster_dict.keys()):
+                        pmf_cluster_dict[cluster_index] = [pmf_cluster]
+                    elif cluster_index in list(pmf_cluster_dict.keys()):
+                        pmf_cluster_dict[cluster_index].append(pmf_cluster)
+
+        pmf_cluster_dict_avg = {}
+        for k,v in pmf_cluster_dict.items():
+            # v is the list of grades for student k
+            pmf_cluster_dict_avg[k] = sum(v)/ float(len(v))
+
+        enriched_cluster_index = [k for k,v in pmf_cluster_dict_avg.items() if float(v) <= 0.05+tol]
+        print("================================================")
+        print("The index of the enriched cluster found using MLC is: ",enriched_cluster_index)
+        enriched_genes_list = [] 
+        for c in enriched_cluster_index:
+
+            enriched_genes_list.append(set(itemgetter(*clusters[c])(list(disease_graph.nodes))))
+        return pmf_cluster_dict_avg, enriched_genes_list
+        
+
+        # =========================== Random Walk with restart ========================
+    @staticmethod
+    def RWR(LCC_sub_graph,disease_genes,restart_prob = 0.75,conv_treshold=1e-6,max_print_items= 10):
+        
+        source = set(disease_genes).intersection(set(LCC_sub_graph.nodes()))
+        p_0 = [0]*len(list(LCC_sub_graph.nodes()))
         for source_id in source:
             source_index = list(LCC_sub_graph.nodes()).index(source_id)
+            
             p_0[source_index] = 1 / float(len(source))
         p_0 = np.array(p_0)
         og_matrix = nx.to_numpy_matrix(LCC_sub_graph)
@@ -121,3 +168,18 @@ class Disease_Genes_Graph:
         s = sorted(gene_probs, key=lambda x: x[1], reverse=True)
         for i in range(0,max_print_items):
             print(s[i][0],s[i][1])
+        return s
+
+    # =========================== Utilities Functions ========================
+
+
+    def list_to_pikle(self,list,name):
+        with open(self.folder_path + 'outputs/' + str(name), 'wb') as f:
+            pickle.dump(list, f)
+
+    def read_pickle_list(self,name):
+        with open(self.folder_path + 'outputs/' + str(name), 'rb') as f:
+            tmp_list = pickle.load(f)
+        return tmp_list
+
+    
