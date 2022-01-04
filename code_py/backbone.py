@@ -26,11 +26,13 @@ class Human_Genes_Graph_Analysis:
         super(Human_Genes_Graph_Analysis, self).__init__()
     
     # =========================== Preprocessing =================================
-    def preprocessing_dataset(self, homo_sap=True, drop_duplicates=True, remove_self_loops=True):
+    def preprocessing_dataset(self, homo_sap=True, drop_duplicates=True, remove_self_loops=True, write_txt = True):
         self.homo_sapiens_genes = pd.read_csv(self.data_path+'BIOGRID-ORGANISM-Homo_sapiens-4.4.204.tab3.txt', sep='\t', header=0,low_memory=False)
         if homo_sap:
             self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes["Experimental System Type"]=='physical')]
             self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes["Organism ID Interactor A"]==9606) & (self.homo_sapiens_genes["Organism ID Interactor B"]==9606)]
+        if write_txt:
+            self.homo_sapiens_genes[['Official Symbol Interactor A', 'Official Symbol Interactor B']].to_csv(self.folder_path +'data/Biogrid_4.4.204.txt', header=None, index=None, sep=' ', mode='a')
         if drop_duplicates:
             self.homo_sapiens_genes = self.homo_sapiens_genes.drop_duplicates()
         if remove_self_loops:
