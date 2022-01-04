@@ -1,7 +1,7 @@
 # Comparative assessment of disease gene prediction algorithms
 
 <p align="center">
-<img src=https://github.com/AMLSapienza/Final_Project/blob/main/data/sapienza_logo.jpg width="100"/>
+<img src=https://github.com/BI-TeamProject/Final_project/blob/main/sapienza_logo.jpg width="100"/>
  </p>
   
   <p align="center">
