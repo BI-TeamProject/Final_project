@@ -134,23 +134,24 @@ class Human_Genes_Graph_Analysis:
         return pmf_cluster_dict_avg, enriched_genes_list, enriched_cluster_index
     
     @staticmethod
-    def MCL_evaluation_metrics(disease_graph,dg_list,clusters,enriched_clusters_list):
+    def MCL_evaluation_metrics(disease_graph,dg_list,hs_disease_genes,clusters,enriched_clusters_list):
         genes_in_all_clusters = []
         TP = 0 
         FP = 0 
+        intersect_clusters = []
         for fold in dg_list:
             for e in enriched_clusters_list:
                 ds_genese_as_string = set(itemgetter(*clusters[e])(list(disease_graph.nodes)))
                 genes_in_all_clusters += list(ds_genese_as_string)
-                intersect_cluster_size = len(set(fold).intersection(ds_genese_as_string))
-                #number of probe set genes in all enriched clusters
-                TP += intersect_cluster_size
-                #number of genes in all enriched cluster which are not seed genes
-                FP += len(clusters[e]) - intersect_cluster_size
-
-            #number of probe seed genes not present in any enriched clusters
-
-        FN = len(set(disease_graph.nodes))-len(set(genes_in_all_clusters).intersection(set(disease_graph.nodes)))
+                intersect_clusters.extend(list(set(fold).intersection(ds_genese_as_string)))
+            
+        #number of probe set genes in all enriched clusters
+        TP = len(set(intersect_clusters))
+        #number of genes in all enriched cluster which are not seed genes
+        FP = len(set(clusters))-TP
+        #number of probe seed genes not present in any enriched clusters
+        #TODO: Check this part again!
+        FN = len(set(disease_graph.nodes))-len(set(genes_in_all_clusters).intersection(set(hs_disease_genes)))
         print("TP: " + str(TP) + " --- " + "FP: " +str(FP) + " --- " + "FN: " +str(FN))
         precision=(TP/(TP+FP))
         recall   = ((TP)/(TP+FN))
