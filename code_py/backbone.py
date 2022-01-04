@@ -15,6 +15,7 @@ from sklearn.preprocessing import normalize
 from operator import itemgetter
 from scipy.stats import hypergeom
 import pickle
+import math
 
 class Human_Genes_Graph_Analysis:
 
@@ -158,7 +159,15 @@ class Human_Genes_Graph_Analysis:
         f1_score = ((2*precision*recall)/(precision+recall))
         print("Precision: " + str(round(precision,4)) + " --- " + "Recall: " +str(round(recall,4)) + " --- " + "F1 Score: " +str(round(f1_score,4)))
 
-
+    @staticmethod
+    def ndcg(predicted_list, true_list, n):
+        dcg = 0
+        idcg = 0
+        for i in range(n):
+            if predicted_list[i] in true_list:
+                dcg += 1/math.log2(i+ 2)
+            idcg += 1/math.log2(i+ 2)
+        return dcg/idcg
 
         # =========================== Random Walk with restart ========================
     @staticmethod
