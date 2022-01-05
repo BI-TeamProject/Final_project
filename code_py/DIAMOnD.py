@@ -417,7 +417,7 @@ def DIAMOnD(G_original, seed_genes, max_number_of_added_nodes, alpha, outfile=No
         print("DIAMOnD(): ignoring %s of %s seed genes that are not in the network" % (
             len(seed_genes - all_genes_in_network), len(seed_genes)))
     
-    if len(disease_genes) != len(seed_genes):
+    elif len(disease_genes) != len(seed_genes):
         print("DiaBLE(): ignoring %s of %s seed genes that are not in the network" % (
             len(seed_genes - all_genes_in_network), len(seed_genes)))
 
