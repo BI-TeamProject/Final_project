@@ -16,6 +16,7 @@ from operator import itemgetter
 from scipy.stats import hypergeom
 import pickle
 import math
+import statistics 
 
 class Human_Genes_Graph_Analysis:
 
@@ -159,8 +160,10 @@ class Human_Genes_Graph_Analysis:
         f1_score = ((2*precision*recall)/(precision+recall))
         print("Precision: " + str(round(precision,6)) + " --- " + "Recall: " +str(round(recall,6)) + " --- " + "F1 Score: " +str(round(f1_score,6)))
 
-    @staticmethod
-    def ndcg(predicted_list, true_list, n):
+    # =================================== Evaluation Metrics ===============================
+
+#    @staticmethod
+    def ndcg(self, predicted_list, true_list, n):
         dcg = 0
         idcg = 0
         for i in range(n):
@@ -168,10 +171,167 @@ class Human_Genes_Graph_Analysis:
                 dcg += 1/math.log2(i+ 2)
             idcg += 1/math.log2(i+ 2)
         return dcg/idcg
+    
+    def return_pre_recall(self, predicted_nodes, ds_genes_train, ds_genes_test, n):
+        precision_50 = []
+        precision_n_10 = []
+        precision_n_4 = []
+        precision_n_2 = []
+        precision_n = []
+        TP_50 = len(set(predicted_nodes[:50]).intersection(set(ds_genes_test)))
+        TP_n_10 = len(set(predicted_nodes[:n//10]).intersection(set(ds_genes_test)))
+        TP_n_4 = len(set(predicted_nodes[:n//4]).intersection(set(ds_genes_test)))
+        TP_n_2 = len(set(predicted_nodes[:n//2]).intersection(set(ds_genes_test)))
+        TP_n = len(set(predicted_nodes[:min(n, len(predicted_nodes))]).intersection(set(ds_genes_test)))
+        FP_50 = len(ds_genes_train) - TP_50
+        FP_n_10 = len(ds_genes_train) - TP_n_10
+        FP_n_4 = len(ds_genes_train) - TP_n_4
+        FP_n_2 = len(ds_genes_train) - TP_n_2
+        FP_n = len(ds_genes_train) - TP_n
+        FN_50 = len(ds_genes_test) - TP_50
+        FN_n_10 = len(ds_genes_test) - TP_n_10
+        FN_n_4 = len(ds_genes_test) - TP_n_4
+        FN_n_2 = len(ds_genes_test) - TP_n_2
+        FN_n = len(ds_genes_test) - TP_n
+        
+        return TP_50/(TP_50+FP_50), TP_n_10/(TP_n_10+FP_n_10), TP_n_4/(TP_n_4+FP_n_4), TP_n_2/(TP_n_2+FP_n_2), TP_n/(TP_n+FP_n), TP_50/(TP_50+FN_50), TP_n_10/(TP_n_10+FN_n_10), TP_n_4/(TP_n_4+FN_n_4), TP_n_2/(TP_n_2+FN_n_2), TP_n/(TP_n+FN_n) 
 
+#    @staticmethod
+    def return_metrics(self, method, pgenes_sub_graph, hs_disease_genes, ds_genes_train, ds_genes_test, print_flag=True):
+        precision_50 = []
+        precision_n_10 = []
+        precision_n_4 = []
+        precision_n_2 = []
+        precision_n = []
+        recall_50 = []
+        recall_n_10 = []
+        recall_n_4 = []
+        recall_n_2 = []
+        recall_n = []
+        f1_score_50 = []
+        f1_score_n_10 = []
+        f1_score_n_4 = []
+        f1_score_n_2 = []
+        f1_score_n = []
+        ndcg_50 = []
+        ndcg_n_10 = []
+        ndcg_n_4 = []
+        ndcg_n_2 = []
+        ndcg_n = []
+        n = len(hs_disease_genes)
+        predicted_nodes_all = []
+        if method == "DIAMOnD":
+            for i in range(5):
+                added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
+                                seed_genes=ds_genes_train[i],
+                                max_number_of_added_nodes=len(ds_genes_train[i]),alpha=1)
+                predicted_nodes_all.append(predicted_nodes)
+        elif method == "DiaBLE":
+            for i in range(5):
+                added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
+                        seed_genes=ds_genes_train[i],
+                        max_number_of_added_nodes=len(ds_genes_train[i]),alpha=1,
+                        DiaBLE=True)
+                predicted_nodes_all.append(predicted_nodes)
+        elif method == "cytoscape":
+            for i in range(5):
+                df = pd.read_csv('cytoscape/diff_'+str(i)+'.csv')
+                df = df[df.selected == False]
+                df.sort_values(by=['diffusion_output_rank'], inplace=True)
+                predicted_nodes = list(df['name'])
+                predicted_nodes_all.append(predicted_nodes)
+        elif method == "rwr":
+            for i in range(5):
+                rwr_enriched_genes = self.RWR(pgenes_sub_graph,ds_genes_train[i],max_print_items=0)
+                rwr_predicted_genes_list = [list(i)[0] for i in rwr_enriched_genes]
+                predicted_nodes_all.append(rwr_predicted_genes_list)
+        for i in range(len(predicted_nodes_all)):
+            predicted_nodes = predicted_nodes_all[i]
+            pre_50, pre_n_10, pre_n_4, pre_n_2, pre_n, rec_50, rec_n_10, rec_n_4, rec_n_2, rec_n = self.return_pre_recall(predicted_nodes, ds_genes_train[i], ds_genes_test[i], n)
+            precision_50.append(pre_50); precision_n_10.append(pre_n_10); precision_n_4.append(pre_n_4); precision_n_2.append(pre_n_2); precision_n.append(pre_n)
+            recall_50.append(rec_50); recall_n_10.append(rec_n_10); recall_n_4.append(rec_n_4); recall_n_2.append(rec_n_2); recall_n.append(rec_n)
+            ndcg_50.append(self.ndcg(predicted_nodes, ds_genes_test[i], 50))
+            ndcg_n_10.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//10))
+            ndcg_n_4.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//4))
+            ndcg_n_2.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//2))
+            ndcg_n.append(self.ndcg(predicted_nodes, ds_genes_test[i], min(n, len(predicted_nodes))))
+            try:
+                f1_score_50.append((2*pre_50*rec_50)/(pre_50+rec_50))
+            except:
+                print("zero division")
+            try:
+                f1_score_n_10.append((2*pre_n_10*rec_n_10)/(pre_n_10+rec_n_10))
+            except:
+                print("zero division")
+            try:
+                f1_score_n_4.append((2*pre_n_4*rec_n_4)/(pre_n_4+rec_n_4))
+            except:
+                print("zero division")
+            try:
+                f1_score_n_2.append((2*pre_n_2*rec_n_2)/(pre_n_2+rec_n_2))
+            except:
+                print("zero division")
+            try:
+                f1_score_n.append((2*pre_n*rec_n)/(pre_n+rec_n))
+            except:
+                print("zero division")
+        
+        if print_flag:
+            print("Precision at 50: " + str(round(statistics.mean(precision_50),6)) + " ± " +str(round(statistics.stdev(precision_50),6)))
+            print("Precision at n/10: " + str(round(statistics.mean(precision_n_10),6)) + " ± " +str(round(statistics.stdev(precision_n_10),6)))
+            print("Precision at n/4: " + str(round(statistics.mean(precision_n_4),6)) + " ± " +str(round(statistics.stdev(precision_n_4),6)))
+            print("Precision at n/2: " + str(round(statistics.mean(precision_n_2),6)) + " ± " +str(round(statistics.stdev(precision_n_2),6)))
+            print("Precision at n: " + str(round(statistics.mean(precision_n),6)) + " ± " +str(round(statistics.stdev(precision_n),6)))
+            print("Recall at 50: " + str(round(statistics.mean(recall_50),6)) + " ± " +str(round(statistics.stdev(recall_50),6)))
+            print("Recall at n/10: " + str(round(statistics.mean(recall_n_10),6)) + " ± " +str(round(statistics.stdev(recall_n_10),6)))
+            print("Recall at n/4: " + str(round(statistics.mean(recall_n_4),6)) + " ± " +str(round(statistics.stdev(recall_n_4),6)))
+            print("Recall at n/2: " + str(round(statistics.mean(recall_n_2),6)) + " ± " +str(round(statistics.stdev(recall_n_2),6)))
+            print("Recall at n: " + str(round(statistics.mean(recall_n),6)) + " ± " +str(round(statistics.stdev(recall_n),6)))
+            try:
+                print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50),6)) + " ± " +str(round(statistics.stdev(f1_score_50),6)))
+            except:
+                try:
+                    print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50),6)))
+                except:
+                    print("No values to record F1")
+            try:
+                print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10),6)) + " ± " +str(round(statistics.stdev(f1_score_n_10),6)))
+            except:
+                try:
+                    print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10),6)))
+                except:
+                    print("No values to record F1")
+            try:
+                print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4),6)) + " ± " +str(round(statistics.stdev(f1_score_n_4),6)))
+            except:
+                try:
+                    print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4),6)))
+                except:
+                    print("No values to record F1")
+            try:
+                print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2),6)) + " ± " +str(round(statistics.stdev(f1_score_n_2),6)))
+            except:
+                try:
+                    print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2),6)))
+                except:
+                    print("No values to record F1")
+            try: 
+                print("F1 Score at n: " + str(round(statistics.mean(f1_score_n),6)) + " ± " +str(round(statistics.stdev(f1_score_n),6)))
+            except:
+                try:
+                    print("F1 Score at n: " + str(round(statistics.mean(f1_score_n),6)) + " ± " +str(round(statistics.stdev(f1_score_n),6)))
+                except:
+                    print("No values to record F1")
+            print("nDCG at 50: " + str(round(statistics.mean(ndcg_50),6)) + " ± " +str(round(statistics.stdev(ndcg_50),6)))
+            print("nDCG at n/10: " + str(round(statistics.mean(ndcg_n_10),6)) + " ± " +str(round(statistics.stdev(ndcg_n_10),6)))
+            print("nDCG at n/4: " + str(round(statistics.mean(ndcg_n_4),6)) + " ± " +str(round(statistics.stdev(ndcg_n_4),6)))
+            print("nDCG at n/2: " + str(round(statistics.mean(ndcg_n_2),6)) + " ± " +str(round(statistics.stdev(ndcg_n_2),6)))
+            print("nDCG at n: " + str(round(statistics.mean(ndcg_n),6)) + " ± " +str(round(statistics.stdev(ndcg_n),6)))
+            
         # =========================== Random Walk with restart ========================
-    @staticmethod
-    def RWR(LCC_sub_graph,disease_genes,restart_prob = 0.75,conv_treshold=1e-6,max_print_items= 10):
+        
+#    @staticmethod
+    def RWR(self, LCC_sub_graph,disease_genes,restart_prob = 0.75,conv_treshold=1e-6,max_print_items= 10):
         
         source = set(disease_genes).intersection(set(LCC_sub_graph.nodes()))
         p_0 = [0]*len(list(LCC_sub_graph.nodes()))
