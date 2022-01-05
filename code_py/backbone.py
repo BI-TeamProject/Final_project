@@ -78,8 +78,8 @@ class Human_Genes_Graph_Analysis:
     # =====================================================================
 
     # ========================= KFold Cross-Validation ====================
-    @staticmethod
-    def KFold_CV(list,n_folds=5,shuffle_flag=True):
+ #   @staticmethod
+    def KFold_CV(self, list, n_folds=5, shuffle_flag=True):
         kf = KFold(n_splits=n_folds, shuffle=shuffle_flag,random_state=1234567)
         X = np.array(list)
         X_dataset_cv = []
@@ -200,7 +200,7 @@ class Human_Genes_Graph_Analysis:
         return TP_50/(TP_50+FP_50), TP_n_10/(TP_n_10+FP_n_10), TP_n_4/(TP_n_4+FP_n_4), TP_n_2/(TP_n_2+FP_n_2), TP_n/(TP_n+FP_n), TP_50/(TP_50+FN_50), TP_n_10/(TP_n_10+FN_n_10), TP_n_4/(TP_n_4+FN_n_4), TP_n_2/(TP_n_2+FN_n_2), TP_n/(TP_n+FN_n) 
 
 #    @staticmethod
-    def return_metrics(self, method, pgenes_sub_graph, hs_disease_genes, ds_genes_train, ds_genes_test, print_flag=True):
+    def return_metrics(self, method, pgenes_sub_graph, hs_disease_genes, ds_genes_train, ds_genes_test, print_flag=True, extended_val = False):
         precision_50 = []
         precision_n_10 = []
         precision_n_4 = []
@@ -222,42 +222,77 @@ class Human_Genes_Graph_Analysis:
         ndcg_n_2 = []
         ndcg_n = []
         n = len(hs_disease_genes)
+        if extended_val:
+            _, ev_disease_genes = self.query_disease_genes_extendend()
+            n_ev = len(ev_disease_genes)
+            ev_genes_train, ev_genes_test = self.KFold_CV(ev_disease_genes)
+            
         predicted_nodes_all = []
         if method == "DIAMOnD":
             for i in range(5):
                 added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
                                 seed_genes=ds_genes_train[i],
                                 max_number_of_added_nodes=len(ds_genes_train[i]),alpha=1)
-                predicted_nodes_all.append(predicted_nodes)
+                if extended_val:
+                    TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    predicted_nodes_all.append(FP_predicted_nodes)
+                else:
+                    predicted_nodes_all.append(predicted_nodes)
         elif method == "DiaBLE":
             for i in range(5):
                 added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
                         seed_genes=ds_genes_train[i],
                         max_number_of_added_nodes=len(ds_genes_train[i]),alpha=1,
                         DiaBLE=True)
-                predicted_nodes_all.append(predicted_nodes)
+                if extended_val:
+                    TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    predicted_nodes_all.append(FP_predicted_nodes)
+                else:
+                    predicted_nodes_all.append(predicted_nodes)
         elif method == "cytoscape":
             for i in range(5):
                 df = pd.read_csv('cytoscape/diff_'+str(i)+'.csv')
                 df = df[df.selected == False]
                 df.sort_values(by=['diffusion_output_rank'], inplace=True)
                 predicted_nodes = list(df['name'])
-                predicted_nodes_all.append(predicted_nodes)
+                if extended_val:
+                    TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    predicted_nodes_all.append(FP_predicted_nodes)
+                else:
+                    predicted_nodes_all.append(predicted_nodes)
         elif method == "rwr":
             for i in range(5):
                 rwr_enriched_genes = self.RWR(pgenes_sub_graph,ds_genes_train[i],max_print_items=0)
-                rwr_predicted_genes_list = [list(i)[0] for i in rwr_enriched_genes]
-                predicted_nodes_all.append(rwr_predicted_genes_list)
+                predicted_nodes = [list(i)[0] for i in rwr_enriched_genes]
+                if extended_val:
+                    TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    predicted_nodes_all.append(FP_predicted_nodes)
+                else:
+                    predicted_nodes_all.append(predicted_nodes)
         for i in range(len(predicted_nodes_all)):
             predicted_nodes = predicted_nodes_all[i]
-            pre_50, pre_n_10, pre_n_4, pre_n_2, pre_n, rec_50, rec_n_10, rec_n_4, rec_n_2, rec_n = self.return_pre_recall(predicted_nodes, ds_genes_train[i], ds_genes_test[i], n)
+            if extended_val:
+                pre_50, pre_n_10, pre_n_4, pre_n_2, pre_n, rec_50, rec_n_10, rec_n_4, rec_n_2, rec_n = self.return_pre_recall(predicted_nodes, ev_genes_train[i], ev_genes_test[i], n_ev)
+            else:
+                pre_50, pre_n_10, pre_n_4, pre_n_2, pre_n, rec_50, rec_n_10, rec_n_4, rec_n_2, rec_n = self.return_pre_recall(predicted_nodes, ds_genes_train[i], ds_genes_test[i], n)
             precision_50.append(pre_50); precision_n_10.append(pre_n_10); precision_n_4.append(pre_n_4); precision_n_2.append(pre_n_2); precision_n.append(pre_n)
             recall_50.append(rec_50); recall_n_10.append(rec_n_10); recall_n_4.append(rec_n_4); recall_n_2.append(rec_n_2); recall_n.append(rec_n)
-            ndcg_50.append(self.ndcg(predicted_nodes, ds_genes_test[i], 50))
-            ndcg_n_10.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//10))
-            ndcg_n_4.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//4))
-            ndcg_n_2.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//2))
-            ndcg_n.append(self.ndcg(predicted_nodes, ds_genes_test[i], min(n, len(predicted_nodes))))
+            if extended_val:
+                ndcg_50.append(self.ndcg(predicted_nodes, ev_genes_test[i], 50))
+                ndcg_n_10.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//10))
+                ndcg_n_4.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//4))
+                ndcg_n_2.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev//2, len(predicted_nodes))))
+                ndcg_n.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev, len(predicted_nodes))))
+            else:
+                ndcg_50.append(self.ndcg(predicted_nodes, ds_genes_test[i], 50))
+                ndcg_n_10.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//10))
+                ndcg_n_4.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//4))
+                ndcg_n_2.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//2))
+                ndcg_n.append(self.ndcg(predicted_nodes, ds_genes_test[i], min(n, len(predicted_nodes))))
             try:
                 f1_score_50.append((2*pre_50*rec_50)/(pre_50+rec_50))
             except:
