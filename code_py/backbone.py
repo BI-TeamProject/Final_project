@@ -15,6 +15,8 @@ from sklearn.preprocessing import normalize
 from operator import itemgetter
 from scipy.stats import hypergeom
 import pickle
+import statistics 
+from prettytable import PrettyTable
 
 class Human_Genes_Graph_Analysis:
 
@@ -205,14 +207,66 @@ class Human_Genes_Graph_Analysis:
 
     # =========================== Utilities Functions ========================
 
-
+    @staticmethod
     def list_to_pikle(self,list,name):
         with open(self.folder_path + 'outputs/' + str(name), 'wb') as f:
             pickle.dump(list, f)
-
+    @staticmethod
     def read_pickle_list(self,name):
         with open(self.folder_path + 'outputs/' + str(name), 'rb') as f:
             tmp_list = pickle.load(f)
         return tmp_list
+
+    @staticmethod
+    def print_table(precision_list=None,recall_list=None,f1_score_list=None,
+                ndcg_50_list=None,ndcg_n_10_list=None,ndcg_n_4_list=None,
+                ndcg_n_2_list=None,ndcg_n_list=None):
+
+                if precision_list is not None:
+                    precision = str(round(statistics.mean(precision_list),6)) + " ± " +str(round(statistics.stdev(precision_list),6))
+                else: 
+                    precision = "-"
+
+                if recall_list is not None:
+                    
+                    recall = str(round(statistics.mean(recall_list),6)) + " ± " +str(round(statistics.stdev(recall_list),6))
+                else: 
+                    recall = "-"
+
+                if f1_score_list is not None:
+                    f1_score = str(round(statistics.mean(f1_score_list),6)) + " ± " +str(round(statistics.stdev(f1_score_list),6))
+                else: 
+                    f1_score = "-"
+
+                if ndcg_50_list is not None:
+                    ndcg_50 = str(round(statistics.mean(ndcg_50_list),6)) + " ± " +str(round(statistics.stdev(ndcg_50_list),6))
+                else: 
+                    ndcg_50 = "-"
+
+                if ndcg_n_10_list is not None:
+                    ndcg_n_10 = str(round(statistics.mean(ndcg_n_10_list),6)) + " ± " +str(round(statistics.stdev(ndcg_n_10_list),6))
+                else: 
+                    ndcg_n_10 = "-"
+
+                if ndcg_n_4_list is not None:
+                    ndcg_n_4 = str(round(statistics.mean(ndcg_n_4_list),6)) + " ± " +str(round(statistics.stdev(ndcg_n_4_list),6))
+                else: 
+                    ndcg_n_4 = "-"
+
+                if ndcg_n_2_list is not None:
+                    ndcg_n_2 = str(round(statistics.mean(ndcg_n_2_list),6)) + " ± " +str(round(statistics.stdev(ndcg_n_2_list),6))
+                else: 
+                    ndcg_n_2 = "-"
+
+                if ndcg_n_list is not None:
+                    ndcg_n = str(round(statistics.mean(ndcg_n_list),6)) + " ± " +str(round(statistics.stdev(ndcg_n_list),6))
+                else: 
+                    ndcg_n = "-"
+
+                overall_list = [precision,recall,f1_score,ndcg_50,ndcg_n_10,ndcg_n_4,ndcg_n_2,ndcg_n]
+                ptable = PrettyTable()
+                ptable.field_names = ["Precision", "Recall", "F1 Score","nDCG@50","nDCG@n/10","nDCG@n/4","nDCG@n/2","nDCG@n"]
+                ptable.add_row(overall_list)
+                print(ptable)
 
     
