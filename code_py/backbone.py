@@ -24,7 +24,6 @@ class Human_Genes_Graph_Analysis:
         self.folder_path = folder_path
         self.data_path   = folder_path + "data/"
         self.disease_ID = disease_ID
-        self.columns = ['Official Symbol Interactor A','Official Symbol Interactor B']
         super(Human_Genes_Graph_Analysis, self).__init__()
     
     # =========================== Preprocessing =================================
@@ -51,8 +50,9 @@ class Human_Genes_Graph_Analysis:
 
     def query_disease_genes_extendend(self):
         self.diseases_ex = pd.read_csv(self.data_path+"all_gene_disease_associations.tsv", sep='\t')
-        self.disease_list_ex = list(self.diseases_ex['geneSymbol'])
-        return self.disease_list_ex
+        self.diseases_ex_filtered = self.diseases_ex[self.diseases_ex['diseaseId']==self.disease_ID]
+        return self.diseases_ex_filtered,list(self.diseases_ex_filtered['geneSymbol'].values)
+
 
     def LCC_to_adj(self,dataframe):
         self.putative_genes_graph = nx.from_pandas_edgelist(dataframe, source = "Official Symbol Interactor A", target = "Official Symbol Interactor B", 
