@@ -43,3 +43,5 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
     └── utils_ltce.py
 ```
 
+   #### Image Credits 
+   https://deepmind.com/blog/article/putting-the-power-of-alphafold-into-the-worlds-hands
