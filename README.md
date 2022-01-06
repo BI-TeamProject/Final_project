@@ -15,12 +15,6 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
 
 ## Abstract
 
-  
-
-  
-  
-  
-  
 <p align="center">
 <img src="https://github.com/BI-TeamProject/Final_project/blob/main/ppi_image.jpg" width="500"/ >
 </p>
