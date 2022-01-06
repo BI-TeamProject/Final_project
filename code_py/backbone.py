@@ -282,9 +282,10 @@ class Human_Genes_Graph_Analysis:
             precision_50.append(pre_50); precision_n_10.append(pre_n_10); precision_n_4.append(pre_n_4); precision_n_2.append(pre_n_2); precision_n.append(pre_n)
             recall_50.append(rec_50); recall_n_10.append(rec_n_10); recall_n_4.append(rec_n_4); recall_n_2.append(rec_n_2); recall_n.append(rec_n)
             if extended_val:
+                print("n_ev: ", n_ev)
                 ndcg_50.append(self.ndcg(predicted_nodes, ev_genes_test[i], 50))
-                ndcg_n_10.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//10))
-                ndcg_n_4.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//4))
+                ndcg_n_10.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev//10, len(predicted_nodes))))
+                ndcg_n_4.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev//4, len(predicted_nodes))))
                 ndcg_n_2.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev//2, len(predicted_nodes))))
                 ndcg_n.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev, len(predicted_nodes))))
             else:
