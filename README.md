@@ -22,7 +22,7 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
   
   
 <p align="center">
-<img src="https://github.com/AMLSapienza/Final_Project/blob/main/data/im_presentation.png" width="500"/ >
+<img src="https://github.com/BI-TeamProject/Final_project/blob/main/ppi_image.jpg" width="500"/ >
 </p>
    
 ### Folder Tree
