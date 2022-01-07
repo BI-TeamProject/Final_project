@@ -15,14 +15,8 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
 
 ## Abstract
 
-  
-
-  
-  
-  
-  
 <p align="center">
-<img src="https://github.com/AMLSapienza/Final_Project/blob/main/data/im_presentation.png" width="500"/ >
+<img src="https://github.com/BI-TeamProject/Final_project/blob/main/ppi_image.jpg" width="500"/ >
 </p>
    
 ### Folder Tree
@@ -43,3 +37,5 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
     └── utils_ltce.py
 ```
 
+   #### Image Credits 
+   https://deepmind.com/blog/article/putting-the-power-of-alphafold-into-the-worlds-hands
