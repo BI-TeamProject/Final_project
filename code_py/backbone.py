@@ -293,13 +293,13 @@ class Human_Genes_Graph_Analysis:
                 ndcg_n_10.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//10))
                 ndcg_n_4.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//4))
                 ndcg_n_2.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//2))
-                ndcg_n.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev))
+                ndcg_n.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev, len(predicted_nodes))))
             else:
                 ndcg_50.append(self.ndcg(predicted_nodes, ds_genes_test[i], 50))
                 ndcg_n_10.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//10))
                 ndcg_n_4.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//4))
                 ndcg_n_2.append(self.ndcg(predicted_nodes, ds_genes_test[i], n//2))
-                ndcg_n.append(self.ndcg(predicted_nodes, ds_genes_test[i], n))
+                ndcg_n.append(self.ndcg(predicted_nodes, ds_genes_test[i], min(n, len(predicted_nodes))))
             try:
                 f1_score_50.append((2*pre_50*rec_50)/(pre_50+rec_50))
             except:
