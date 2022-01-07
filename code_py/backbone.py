@@ -161,7 +161,7 @@ class Human_Genes_Graph_Analysis:
         precision=(TP/(TP+FP))
         recall   = ((TP)/(TP+FN))
         f1_score = ((2*precision*recall)/(precision+recall))
-        print("Precision: " + str(round(precision,6)) + " --- " + "Recall: " +str(round(recall,6)) + " --- " + "F1 Score: " +str(round(f1_score,6)))
+        print("Precision: " + str(round(precision*100,2)) + " --- " + "Recall: " +str(round(recall*100,2)) + " --- " + "F1 Score: " +str(round(f1_score*100,2)))
 
     # =================================== Evaluation Metrics ===============================
 
@@ -303,75 +303,80 @@ class Human_Genes_Graph_Analysis:
             try:
                 f1_score_50.append((2*pre_50*rec_50)/(pre_50+rec_50))
             except:
-                print("zero division")
+                pass
+                #print("zero division")
             try:
                 f1_score_n_10.append((2*pre_n_10*rec_n_10)/(pre_n_10+rec_n_10))
             except:
-                print("zero division")
+                pass
+                #print("zero division")
             try:
                 f1_score_n_4.append((2*pre_n_4*rec_n_4)/(pre_n_4+rec_n_4))
             except:
-                print("zero division")
+                pass
+                #print("zero division")
             try:
                 f1_score_n_2.append((2*pre_n_2*rec_n_2)/(pre_n_2+rec_n_2))
             except:
-                print("zero division")
+                pass
+                #print("zero division")
             try:
                 f1_score_n.append((2*pre_n*rec_n)/(pre_n+rec_n))
             except:
-                print("zero division")
+                pass 
+                #print("zero division")
         
         if print_flag:
-            print("Precision at 50: " + str(round(statistics.mean(precision_50),6)) + " ± " +str(round(statistics.stdev(precision_50),6)))
-            print("Precision at n/10: " + str(round(statistics.mean(precision_n_10),6)) + " ± " +str(round(statistics.stdev(precision_n_10),6)))
-            print("Precision at n/4: " + str(round(statistics.mean(precision_n_4),6)) + " ± " +str(round(statistics.stdev(precision_n_4),6)))
-            print("Precision at n/2: " + str(round(statistics.mean(precision_n_2),6)) + " ± " +str(round(statistics.stdev(precision_n_2),6)))
-            print("Precision at n: " + str(round(statistics.mean(precision_n),6)) + " ± " +str(round(statistics.stdev(precision_n),6)))
-            print("Recall at 50: " + str(round(statistics.mean(recall_50),6)) + " ± " +str(round(statistics.stdev(recall_50),6)))
-            print("Recall at n/10: " + str(round(statistics.mean(recall_n_10),6)) + " ± " +str(round(statistics.stdev(recall_n_10),6)))
-            print("Recall at n/4: " + str(round(statistics.mean(recall_n_4),6)) + " ± " +str(round(statistics.stdev(recall_n_4),6)))
-            print("Recall at n/2: " + str(round(statistics.mean(recall_n_2),6)) + " ± " +str(round(statistics.stdev(recall_n_2),6)))
-            print("Recall at n: " + str(round(statistics.mean(recall_n),6)) + " ± " +str(round(statistics.stdev(recall_n),6)))
+            print("Precision at 50: " + str(round(statistics.mean(precision_50)*100,2)) + " ± " +str(round(statistics.stdev(precision_50)*100,2)))
+            print("Precision at n/10: " + str(round(statistics.mean(precision_n_10)*100,2)) + " ± " +str(round(statistics.stdev(precision_n_10)*100,2)))
+            print("Precision at n/4: " + str(round(statistics.mean(precision_n_4)*100,2)) + " ± " +str(round(statistics.stdev(precision_n_4)*100,2)))
+            print("Precision at n/2: " + str(round(statistics.mean(precision_n_2)*100,2)) + " ± " +str(round(statistics.stdev(precision_n_2)*100,2)))
+            print("Precision at n: " + str(round(statistics.mean(precision_n)*100,2)) + " ± " +str(round(statistics.stdev(precision_n)*100,2)))
+            print("Recall at 50: " + str(round(statistics.mean(recall_50)*100,2)) + " ± " +str(round(statistics.stdev(recall_50)*100,2)))
+            print("Recall at n/10: " + str(round(statistics.mean(recall_n_10)*100,2)) + " ± " +str(round(statistics.stdev(recall_n_10)*100,2)))
+            print("Recall at n/4: " + str(round(statistics.mean(recall_n_4)*100,2)) + " ± " +str(round(statistics.stdev(recall_n_4)*100,2)))
+            print("Recall at n/2: " + str(round(statistics.mean(recall_n_2)*100,2)) + " ± " +str(round(statistics.stdev(recall_n_2)*100,2)))
+            print("Recall at n: " + str(round(statistics.mean(recall_n)*100,2)) + " ± " +str(round(statistics.stdev(recall_n)*100,2)))
             try:
-                print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50),6)) + " ± " +str(round(statistics.stdev(f1_score_50),6)))
+                print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_50)*100,2)))
             except:
                 try:
-                    print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50),6)))
+                    print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50)*100,2)))
                 except:
                     print("No values to record F1")
             try:
-                print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10),6)) + " ± " +str(round(statistics.stdev(f1_score_n_10),6)))
+                print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n_10)*100,2)))
             except:
                 try:
-                    print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10),6)))
+                    print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10)*100,2)))
                 except:
                     print("No values to record F1")
             try:
-                print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4),6)) + " ± " +str(round(statistics.stdev(f1_score_n_4),6)))
+                print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n_4)*100,2)))
             except:
                 try:
-                    print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4),6)))
+                    print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4)*100,2)))
                 except:
                     print("No values to record F1")
             try:
-                print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2),6)) + " ± " +str(round(statistics.stdev(f1_score_n_2),6)))
+                print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n_2)*100,2)))
             except:
                 try:
-                    print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2),6)))
+                    print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2)*100,2)))
                 except:
                     print("No values to record F1")
             try: 
-                print("F1 Score at n: " + str(round(statistics.mean(f1_score_n),6)) + " ± " +str(round(statistics.stdev(f1_score_n),6)))
+                print("F1 Score at n: " + str(round(statistics.mean(f1_score_n)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n)*100,2)))
             except:
                 try:
-                    print("F1 Score at n: " + str(round(statistics.mean(f1_score_n),6)) + " ± " +str(round(statistics.stdev(f1_score_n),6)))
+                    print("F1 Score at n: " + str(round(statistics.mean(f1_score_n)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n)*100,2)))
                 except:
                     print("No values to record F1")
-            print("nDCG at 50: " + str(round(statistics.mean(ndcg_50),6)) + " ± " +str(round(statistics.stdev(ndcg_50),6)))
-            print("nDCG at n/10: " + str(round(statistics.mean(ndcg_n_10),6)) + " ± " +str(round(statistics.stdev(ndcg_n_10),6)))
-            print("nDCG at n/4: " + str(round(statistics.mean(ndcg_n_4),6)) + " ± " +str(round(statistics.stdev(ndcg_n_4),6)))
-            print("nDCG at n/2: " + str(round(statistics.mean(ndcg_n_2),6)) + " ± " +str(round(statistics.stdev(ndcg_n_2),6)))
-            print("nDCG at n: " + str(round(statistics.mean(ndcg_n),6)) + " ± " +str(round(statistics.stdev(ndcg_n),6)))
+            print("nDCG at 50: " + str(round(statistics.mean(ndcg_50)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_50)*100,2)))
+            print("nDCG at n/10: " + str(round(statistics.mean(ndcg_n_10)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n_10)*100,2)))
+            print("nDCG at n/4: " + str(round(statistics.mean(ndcg_n_4)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n_4)*100,2)))
+            print("nDCG at n/2: " + str(round(statistics.mean(ndcg_n_2)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n_2)*100,2)))
+            print("nDCG at n: " + str(round(statistics.mean(ndcg_n)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n)*100,2)))
             
         # =========================== Random Walk with restart ========================
         
