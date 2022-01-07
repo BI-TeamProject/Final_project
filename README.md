@@ -1,7 +1,8 @@
 # Comparative assessment of disease gene prediction algorithms
 
 <p align="center">
-<img src=https://github.com/BI-TeamProject/Final_project/blob/main/sapienza_logo.jpg width="100"/>
+<img src= https://github.com/BI-TeamProject/Final_project/blob/main/Further%20Material/git_images/sapienza_logo.jpg
+ width="100"/>
  </p>
   
   <p align="center">
@@ -16,7 +17,7 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
 ## Abstract
 
 <p align="center">
-<img src="https://github.com/BI-TeamProject/Final_project/blob/main/ppi_image.jpg" width="500"/ >
+<img src=https://github.com/BI-TeamProject/Final_project/blob/main/Further%20Material/git_images/ppi_image.jpg width="500"/ >
 </p>
    
 ### Folder Tree
