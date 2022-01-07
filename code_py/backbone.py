@@ -230,36 +230,43 @@ class Human_Genes_Graph_Analysis:
         predicted_nodes_all = []
         if method == "DIAMOnD":
             for i in range(5):
-                added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
-                                seed_genes=ds_genes_train[i],
-                                max_number_of_added_nodes=len(ds_genes_train[i]),alpha=1)
                 if extended_val:
+                    added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
+                                seed_genes=ds_genes_train[i],
+                                max_number_of_added_nodes=n_ev,alpha=1)
                     TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
-                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list]
                     predicted_nodes_all.append(FP_predicted_nodes)
                 else:
+                    added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
+                                seed_genes=ds_genes_train[i],
+                                max_number_of_added_nodes=n,alpha=1)
                     predicted_nodes_all.append(predicted_nodes)
         elif method == "DiaBLE":
             for i in range(5):
-                added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
-                        seed_genes=ds_genes_train[i],
-                        max_number_of_added_nodes=len(ds_genes_train[i]),alpha=1,
-                        DiaBLE=True)
                 if extended_val:
+                    added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
+                        seed_genes=ds_genes_train[i],
+                        max_number_of_added_nodes=n_ev,alpha=1,
+                        DiaBLE=True)
                     TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
-                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list]
                     predicted_nodes_all.append(FP_predicted_nodes)
                 else:
+                    added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
+                        seed_genes=ds_genes_train[i],
+                        max_number_of_added_nodes=n,alpha=1,
+                        DiaBLE=True)
                     predicted_nodes_all.append(predicted_nodes)
         elif method == "cytoscape":
             for i in range(5):
-                df = pd.read_csv('cytoscape/diff_'+str(i)+'.csv')
+                df = pd.read_csv('cytoscape/'+str(self.disease_ID)+'/diff_'+str(i)+'.csv')
                 df = df[df.selected == False]
                 df.sort_values(by=['diffusion_output_rank'], inplace=True)
                 predicted_nodes = list(df['name'])
                 if extended_val:
                     TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
-                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list]
                     predicted_nodes_all.append(FP_predicted_nodes)
                 else:
                     predicted_nodes_all.append(predicted_nodes)
@@ -269,7 +276,7 @@ class Human_Genes_Graph_Analysis:
                 predicted_nodes = [list(i)[0] for i in rwr_enriched_genes]
                 if extended_val:
                     TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
-                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list][:50]
+                    FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list]
                     predicted_nodes_all.append(FP_predicted_nodes)
                 else:
                     predicted_nodes_all.append(predicted_nodes)
@@ -282,11 +289,10 @@ class Human_Genes_Graph_Analysis:
             precision_50.append(pre_50); precision_n_10.append(pre_n_10); precision_n_4.append(pre_n_4); precision_n_2.append(pre_n_2); precision_n.append(pre_n)
             recall_50.append(rec_50); recall_n_10.append(rec_n_10); recall_n_4.append(rec_n_4); recall_n_2.append(rec_n_2); recall_n.append(rec_n)
             if extended_val:
-                print("n_ev: ", n_ev)
                 ndcg_50.append(self.ndcg(predicted_nodes, ev_genes_test[i], 50))
-                ndcg_n_10.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev//10, len(predicted_nodes))))
-                ndcg_n_4.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev//4, len(predicted_nodes))))
-                ndcg_n_2.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev//2, len(predicted_nodes))))
+                ndcg_n_10.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//10))
+                ndcg_n_4.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//4))
+                ndcg_n_2.append(self.ndcg(predicted_nodes, ev_genes_test[i], n_ev//2))
                 ndcg_n.append(self.ndcg(predicted_nodes, ev_genes_test[i], min(n_ev, len(predicted_nodes))))
             else:
                 ndcg_50.append(self.ndcg(predicted_nodes, ds_genes_test[i], 50))
