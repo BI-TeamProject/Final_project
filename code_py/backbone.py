@@ -233,14 +233,14 @@ class Human_Genes_Graph_Analysis:
                 if extended_val:
                     added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
                                 seed_genes=ds_genes_train[i],
-                                max_number_of_added_nodes=n_ev,alpha=1)
+                                max_number_of_added_nodes=n_ev,alpha=1,DiaBLE=False)
                     TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
                     FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list]
                     predicted_nodes_all.append(FP_predicted_nodes)
                 else:
                     added_nodes, predicted_nodes = DIAMOnD(G_original=pgenes_sub_graph,
                                 seed_genes=ds_genes_train[i],
-                                max_number_of_added_nodes=n,alpha=1)
+                                max_number_of_added_nodes=n,alpha=1,DiaBLE=False)
                     predicted_nodes_all.append(predicted_nodes)
         elif method == "DiaBLE":
             for i in range(5):
@@ -272,8 +272,8 @@ class Human_Genes_Graph_Analysis:
                     predicted_nodes_all.append(predicted_nodes)
         elif method == "rwr":
             for i in range(5):
-                rwr_enriched_genes = self.RWR(pgenes_sub_graph,ds_genes_train[i],max_print_items=0)
-                predicted_nodes = [list(i)[0] for i in rwr_enriched_genes]
+                _,rwr_enriched_genes = self.RWR(pgenes_sub_graph,ds_genes_train[i],max_print_items=0)
+                predicted_nodes = rwr_enriched_genes
                 if extended_val:
                     TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
                     FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list]
@@ -416,11 +416,15 @@ class Human_Genes_Graph_Analysis:
             # then, set p^(t) = p^(t + 1), and loop again if necessary
             # no deep copy necessary here, we're just renaming p
             p_t = p_t_1
+        
         gene_probs =zip(list(LCC_sub_graph.nodes()), p_t.tolist())
         s = sorted(gene_probs, key=lambda x: x[1], reverse=True)
         for i in range(0,max_print_items):
             print(s[i][0],s[i][1])
-        return s
+
+        genens_ranked = set([list(i)[0] for i in s]) - set(disease_genes)
+
+        return s,list(genens_ranked)
 
     # =========================== Utilities Functions ========================
 
