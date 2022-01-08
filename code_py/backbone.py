@@ -272,8 +272,8 @@ class Human_Genes_Graph_Analysis:
                     predicted_nodes_all.append(predicted_nodes)
         elif method == "rwr":
             for i in range(5):
-                _,rwr_enriched_genes = self.RWR(pgenes_sub_graph,ds_genes_train[i],max_print_items=0)
-                predicted_nodes = rwr_enriched_genes
+                rwr_enriched_genes,_ = self.RWR(pgenes_sub_graph,ds_genes_train[i],max_print_items=0)
+                predicted_nodes = [list(i)[0] for i in rwr_enriched_genes]
                 if extended_val:
                     TP_list = set(predicted_nodes).intersection(set(ds_genes_test[i]))
                     FP_predicted_nodes = [i for i in predicted_nodes if i not in TP_list]
