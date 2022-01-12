@@ -97,7 +97,6 @@ def read_input(network_file, seed_file):
     be used only.
     * Lines that start with '#' will be ignored in both cases
     """
-
     sniffer = csv.Sniffer()
     line_delimiter = None
     for line in open(network_file, 'r'):
@@ -244,7 +243,7 @@ def reduce_not_in_cluster_nodes(all_degrees, neighbors, G, not_in_cluster, clust
 # ======================================================================================
 #   C O R E    A L G O R I T H M
 # ======================================================================================
-def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE):
+def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
     """
     Parameters:
     ----------
@@ -265,6 +264,7 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE):
     """
     # If we apply DiaBLE, we will create our own graph based on the DiaBLE universe
     if DiaBLE:
+        
         # The current disease module(seed set)
         G_sub_graph = G.subgraph(S)
         G_sub_graph = nx.Graph(G_sub_graph)
@@ -277,8 +277,8 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE):
                 for n in initial_nodes:
                     neig_of_node = G.neighbors(n)
                     for new_node in neig_of_node:
-                        G_sub_graph.add_edge(n, new_node)
-        G = G_sub_graph
+                            G_sub_graph.add_edge(n, new_node)
+            G = G_sub_graph
 
     N = G.number_of_nodes()
 
