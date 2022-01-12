@@ -1,26 +1,6 @@
-#! /usr/bin/env python
-
-
-"""
-# -----------------------------------------------------------------------
-# encoding: utf-8
-# DIAMOnD.py
-# Joerg Menche, Susan D. Ghiassian
-# Last Modified: 2020-22-09
-# This code runs the DIAMOnD algorithm as described in
-#
-# A DIseAse MOdule Detection (DIAMOnD) Algorithm derived from a
-# systematic analysis of connectivity patterns of disease proteins in
-# the Human Interactome
-#
-# by Susan Dina Ghiassian, Joerg Menche & Albert-Laszlo Barabasi
-#
-#
-# -----------------------------------------------------------------------
-"""
-
 import time
 import networkx as nx
+from networkx.classes.function import neighbors
 import numpy as np
 import copy
 import scipy.stats
@@ -240,6 +220,14 @@ def reduce_not_in_cluster_nodes(all_degrees, neighbors, G, not_in_cluster, clust
     return reduced_not_in_cluster
 
 
+
+def diable_universe(candidates,cluster_nodes,neighbors):
+    candidate_neighbors = set()
+    for candidate in candidates:
+        candidate_neighbors |= set(neighbors[candidate])
+    return cluster_nodes | candidates | candidate_neighbors
+
+
 # ======================================================================================
 #   C O R E    A L G O R I T H M
 # ======================================================================================
@@ -262,26 +250,7 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
       * kb   : number of +1 neighbors
       * p    : p-value at agglomeration
     """
-    # If we apply DiaBLE, we will create our own graph based on the DiaBLE universe
-    if DiaBLE:
-        
-        # The current disease module(seed set)
-        G_sub_graph = G.subgraph(S)
-        G_sub_graph = nx.Graph(G_sub_graph)
-        
-        for iter in range(X):
-            while len(G_sub_graph.nodes) != len(G.nodes):
-                # We first start with the candidate genes (i.e. those having at least a link to the current seed set)
-                #  Then for each iteration, first neighbors of the candidate genes
-                initial_nodes = list(G_sub_graph.nodes)
-                for n in initial_nodes:
-                    neig_of_node = G.neighbors(n)
-                    for new_node in neig_of_node:
-                            G_sub_graph.add_edge(n, new_node)
-            G = G_sub_graph
-
     N = G.number_of_nodes()
-
     added_nodes = []
     # We need the following variable to return only the list of the nodes
     predicted_nodes = []
@@ -294,7 +263,6 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
     # ------------------------------------------------------------------
     # Setting up initial set of nodes in cluster
     # ------------------------------------------------------------------
-
     cluster_nodes = set(S)
     not_in_cluster = set()
     s0 = len(cluster_nodes)
@@ -332,6 +300,10 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
         # ------------------------------------------------------------------
 
         info = {}
+        if DiaBLE:
+            db_universe  = diable_universe(not_in_cluster,cluster_nodes,neighbors)
+            N = len(db_universe)
+            #print(N)
 
         pmin = 10
         next_node = 'nix'
@@ -382,7 +354,7 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
 # ===========================================================================
 
 
-def DIAMOnD(G_original, seed_genes, max_number_of_added_nodes, alpha, outfile=None, DiaBLE = False):
+def DIAMOnD(G_original, seed_genes, max_number_of_added_nodes, alpha, DiaBLE = False):
     """
     Runs the DIAMOnD algorithm
     Input:
@@ -422,7 +394,7 @@ def DIAMOnD(G_original, seed_genes, max_number_of_added_nodes, alpha, outfile=No
             len(seed_genes - all_genes_in_network), len(seed_genes)))
 
     # 2. agglomeration algorithm.
-    added_nodes, predicted_nodes = diamond_iteration_of_first_X_nodes(G_original,
+    added_nodes, predicted_nodes  = diamond_iteration_of_first_X_nodes(G_original,
                                                      disease_genes,
                                                      max_number_of_added_nodes, alpha, DiaBLE)
     # 3. saving the results

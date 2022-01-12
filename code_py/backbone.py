@@ -223,16 +223,18 @@ class Human_Genes_Graph_Analysis:
         return dcg/idcg
     
     def return_pre_recall(self, predicted_nodes, ds_genes_train, ds_genes_test, n):
-        TP_50 = len(set(predicted_nodes[:50]).intersection(set(ds_genes_test)))
+        TP_50   = len(set(predicted_nodes[:50]).intersection(set(ds_genes_test)))
         TP_n_10 = len(set(predicted_nodes[:n//10]).intersection(set(ds_genes_test)))
-        TP_n_4 = len(set(predicted_nodes[:n//4]).intersection(set(ds_genes_test)))
-        TP_n_2 = len(set(predicted_nodes[:n//2]).intersection(set(ds_genes_test)))
+        TP_n_4  = len(set(predicted_nodes[:n//4]).intersection(set(ds_genes_test)))
+        TP_n_2  = len(set(predicted_nodes[:n//2]).intersection(set(ds_genes_test)))
         TP_n = len(set(predicted_nodes[:min(n, len(predicted_nodes))]).intersection(set(ds_genes_test)))
-        FP_50 = len(ds_genes_train) - TP_50
-        FP_n_10 = len(ds_genes_train) - TP_n_10
-        FP_n_4 = len(ds_genes_train) - TP_n_4
-        FP_n_2 = len(ds_genes_train) - TP_n_2
-        FP_n = len(ds_genes_train) - TP_n
+
+        FP_50 = (len(set(predicted_nodes[:50]))-TP_50)/len(set(predicted_nodes[:50]))
+        FP_n_10 = (len(set(predicted_nodes[:n//10])) - TP_n_10)/len(set(predicted_nodes[:n//10]))
+        FP_n_4 =  (len(set(predicted_nodes[:n//4]))  - TP_n_4)/ len(set(predicted_nodes[:n//4]))
+        FP_n_2 =  (len(set(predicted_nodes[:n//2]))  - TP_n_2)/ len(set(predicted_nodes[:n//2]))
+        FP_n =    (len(set(predicted_nodes[:min(n, len(predicted_nodes))])) - TP_n)/len(set(predicted_nodes[:min(n, len(predicted_nodes))]))
+        
         FN_50 = len(ds_genes_test) - TP_50
         FN_n_10 = len(ds_genes_test) - TP_n_10
         FN_n_4 = len(ds_genes_test) - TP_n_4
@@ -424,7 +426,7 @@ class Human_Genes_Graph_Analysis:
                 f1_str_n_4 = "0.0 ± 0.0" 
 
             try:
-                f1_str_n_2 = str(round(statistics.mean(f1_score_n_2)*100,2))
+                f1_str_n_2 = str(round(statistics.mean(f1_score_n_2)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n_2)*100,2))
             except:
                 f1_str_n_2 = "0.0 ± 0.0" 
             try: 
@@ -489,4 +491,9 @@ class Human_Genes_Graph_Analysis:
         return self.results_df
 
     def dataframe_to_html(self,dataframe):
+        dataframe.to_html(self.folder_path + 'outputs/results_table/' + self.disease_ID +".html",index=True)
+
+    
+    def dataframe_to_latex(self,dataframe):
         dataframe.to_html(self.folder_path + 'outputs/results_table/' + self.disease_ID +".html",index=False)
+        print(dataframe.to_latex(index=False)) 
