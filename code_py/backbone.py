@@ -495,5 +495,5 @@ class Human_Genes_Graph_Analysis:
 
     
     def dataframe_to_latex(self,dataframe):
-        dataframe.to_html(self.folder_path + 'outputs/results_table/' + self.disease_ID +".html",index=False)
+        dataframe.to_html(self.folder_path + 'outputs/results_table/' + self.disease_ID +".html",index=True)
         print(dataframe.to_latex(index=False)) 
