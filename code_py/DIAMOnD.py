@@ -303,7 +303,6 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
         if DiaBLE:
             db_universe  = diable_universe(not_in_cluster,cluster_nodes,neighbors)
             N = len(db_universe)
-            #print(N)
 
         pmin = 10
         next_node = 'nix'

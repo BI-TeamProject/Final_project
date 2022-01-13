@@ -229,11 +229,11 @@ class Human_Genes_Graph_Analysis:
         TP_n_2  = len(set(predicted_nodes[:n//2]).intersection(set(ds_genes_test)))
         TP_n = len(set(predicted_nodes[:min(n, len(predicted_nodes))]).intersection(set(ds_genes_test)))
 
-        FP_50 = (len(set(predicted_nodes[:50]))-TP_50)/len(set(predicted_nodes[:50]))
-        FP_n_10 = (len(set(predicted_nodes[:n//10])) - TP_n_10)/len(set(predicted_nodes[:n//10]))
-        FP_n_4 =  (len(set(predicted_nodes[:n//4]))  - TP_n_4)/ len(set(predicted_nodes[:n//4]))
-        FP_n_2 =  (len(set(predicted_nodes[:n//2]))  - TP_n_2)/ len(set(predicted_nodes[:n//2]))
-        FP_n =    (len(set(predicted_nodes[:min(n, len(predicted_nodes))])) - TP_n)/len(set(predicted_nodes[:min(n, len(predicted_nodes))]))
+        FP_50   = (len(set(predicted_nodes[:50]))-TP_50)
+        FP_n_10 = (len(set(predicted_nodes[:n//10])) - TP_n_10)
+        FP_n_4  =  (len(set(predicted_nodes[:n//4]))  - TP_n_4)
+        FP_n_2  =  (len(set(predicted_nodes[:n//2]))  - TP_n_2)
+        FP_n    =  (len(set(predicted_nodes[:min(n, len(predicted_nodes))])) - TP_n)
         
         FN_50 = len(ds_genes_test) - TP_50
         FN_n_10 = len(ds_genes_test) - TP_n_10
