@@ -34,12 +34,13 @@ class Human_Genes_Graph_Analysis:
         :params homo_sap: bool -> filtering the dataset accordingly homo sapiens genes
         :params drop_duplicates: bool -> removes the dusplicates in the dataset
         :params remove_self_loops: bool -> removes the self loops from the ppi
-        :write_txt: bool -> wirtes output txt file
+        :write_txt: bool -> writes output txt file
         """
         self.homo_sapiens_genes = pd.read_csv(self.data_path+'BIOGRID-ORGANISM-Homo_sapiens-4.4.204.tab3.txt', sep='\t', header=0,low_memory=False)
         if homo_sap:
             self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes["Experimental System Type"]=='physical')]
             self.homo_sapiens_genes = self.homo_sapiens_genes[(self.homo_sapiens_genes["Organism ID Interactor A"]==9606) & (self.homo_sapiens_genes["Organism ID Interactor B"]==9606)]
+            self.trial = self.homo_sapiens_genes
         if write_txt:
             self.homo_sapiens_genes[['Official Symbol Interactor A', 'Official Symbol Interactor B']].to_csv(self.folder_path +'data/Biogrid_4.4.204.txt', header=None, index=None, sep=' ', mode='a')
         if drop_duplicates:
@@ -77,19 +78,15 @@ class Human_Genes_Graph_Analysis:
         self.putative_genes_graph = nx.from_pandas_edgelist(dataframe, source = "Official Symbol Interactor A", target = "Official Symbol Interactor B", 
                               create_using=nx.Graph())
         #finding the connected components
-        self.ppi_interact = set(self.putative_genes_graph.nodes)
-
         self.conn_comp = list(nx.connected_components(self.putative_genes_graph))
         #len of the connected component 
         self.conn_comp_len = [len(c) for c in sorted(self.conn_comp, key=len, reverse=True)]
-        print("# of connected components:", len(self.conn_comp))
         #finding the largest connected component 
         self.LCC = max(self.conn_comp, key=len)
         print(len(self.LCC)) #LCC is a dict of nodes 
         #creating a subgraph with the largest connected component
         self.LCC_sub_graph = self.putative_genes_graph.subgraph(self.LCC).copy()               
         print(nx.info(self.LCC_sub_graph))
-        self.interactome_genes = set(self.LCC_sub_graph.nodes)
         #converting subgraph into the adj matrix 
         self.LCC_sub_graph_adj = nx.adjacency_matrix(self.LCC_sub_graph)
         return self.LCC_sub_graph,self.LCC_sub_graph_adj , self.putative_genes_graph.number_of_nodes(), self.putative_genes_graph.number_of_edges()
