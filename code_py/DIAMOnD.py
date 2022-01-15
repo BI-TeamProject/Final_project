@@ -219,13 +219,15 @@ def reduce_not_in_cluster_nodes(all_degrees, neighbors, G, not_in_cluster, clust
 
     return reduced_not_in_cluster
 
+# ======================================================================================
+#   D I A B L E    A L G O R I T H M     I M P L E M E N T A T I O N (see line 304 for calling)
+# ======================================================================================
 
-
-def diable_universe(candidates,cluster_nodes,neighbors):
-    candidate_neighbors = set()
-    for candidate in candidates:
-        candidate_neighbors |= set(neighbors[candidate])
-    return cluster_nodes | candidates | candidate_neighbors
+def diable_universe(not_in_cluster,cluster_nodes,neighbors):
+    neighbors_to_add = set()
+    for candidate in not_in_cluster:
+        neighbors_to_add |= set(neighbors[candidate])
+    return cluster_nodes | not_in_cluster | neighbors_to_add
 
 
 # ======================================================================================
@@ -299,7 +301,7 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
         #
         # ------------------------------------------------------------------
 
-        info = {}
+        #calling DIABLE
         if DiaBLE:
             db_universe  = diable_universe(not_in_cluster,cluster_nodes,neighbors)
             N = len(db_universe)
@@ -310,6 +312,7 @@ def diamond_iteration_of_first_X_nodes(G, S, X, alpha, DiaBLE=False):
                                                              neighbors, G,
                                                              not_in_cluster,
                                                              cluster_nodes, alpha)
+        info = {}
 
         for node, kbk in reduced_not_in_cluster.items():
             # Getting the p-value of this kb,k

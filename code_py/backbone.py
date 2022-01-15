@@ -30,7 +30,11 @@ class Human_Genes_Graph_Analysis:
     # ============================  PREPROCESSING 
     def preprocessing_dataset(self, homo_sap=True, drop_duplicates=True, remove_self_loops=True, write_txt = True):
         """
-        filtering dataset according to human genes only, removing duplicates and self-loops
+        filtering dataset
+        :params homo_sap: bool -> filtering the dataset accordingly homo sapiens genes
+        :params drop_duplicates: bool -> removes the dusplicates in the dataset
+        :params remove_self_loops: bool -> removes the self loops from the ppi
+        :write_txt: bool -> wirtes output txt file
         """
         self.homo_sapiens_genes = pd.read_csv(self.data_path+'BIOGRID-ORGANISM-Homo_sapiens-4.4.204.tab3.txt', sep='\t', header=0,low_memory=False)
         if homo_sap:
@@ -46,7 +50,9 @@ class Human_Genes_Graph_Analysis:
     
     # ============================  QUERY DISEASE GENES 
     def query_disease_genes(self):
-
+        """
+        Filter on the diseases curated dataset according to the input disease query
+        """
         self.diseases = pd.read_csv(self.data_path+"curated_gene_disease_associations.tsv", sep='\t')
         self.disease_query =  self.diseases[self.diseases["diseaseId"]==self.disease_ID]
         self.disease_list = list(self.disease_query['geneSymbol'])
@@ -55,16 +61,24 @@ class Human_Genes_Graph_Analysis:
 
     # ============================ QUERY DISEASE GENES EXTENDED
     def query_disease_genes_extendend(self):
+        """
+        Filter on the diseases all genes associatiations dataset according to the input disease query
+        """
         self.diseases_ex = pd.read_csv(self.data_path+"all_gene_disease_associations.tsv", sep='\t')
         self.diseases_ex_filtered = self.diseases_ex[self.diseases_ex['diseaseId']==self.disease_ID]
         return self.diseases_ex_filtered,list(self.diseases_ex_filtered['geneSymbol'].values)
 
     # ============================  LARGE CONNECTED COMPONENTS TO ADJ 
     def LCC_to_adj(self,dataframe):
+        """
+        Converting tha dataframe as graph with targets and sources, returns the LCC sub graph, adjacency matrix, # nodes and #edges
+        :param: datasframe
+        """
         self.putative_genes_graph = nx.from_pandas_edgelist(dataframe, source = "Official Symbol Interactor A", target = "Official Symbol Interactor B", 
                               create_using=nx.Graph())
-
         #finding the connected components
+        self.ppi_interact = set(self.putative_genes_graph.nodes)
+
         self.conn_comp = list(nx.connected_components(self.putative_genes_graph))
         #len of the connected component 
         self.conn_comp_len = [len(c) for c in sorted(self.conn_comp, key=len, reverse=True)]
@@ -75,13 +89,20 @@ class Human_Genes_Graph_Analysis:
         #creating a subgraph with the largest connected component
         self.LCC_sub_graph = self.putative_genes_graph.subgraph(self.LCC).copy()               
         print(nx.info(self.LCC_sub_graph))
+        self.interactome_genes = set(self.LCC_sub_graph.nodes)
         #converting subgraph into the adj matrix 
         self.LCC_sub_graph_adj = nx.adjacency_matrix(self.LCC_sub_graph)
         return self.LCC_sub_graph,self.LCC_sub_graph_adj , self.putative_genes_graph.number_of_nodes(), self.putative_genes_graph.number_of_edges()
 
     # ============================  K-FOLD CROSS VALIDATION
- #   @staticmethod
     def KFold_CV(self, list, n_folds=5, shuffle_flag=True):
+        """
+        K-Fold cross validation
+        :param list: -> input list 
+        :param n_folds: int -> default=5
+        :param shuffle_flag: bool -> default= True
+        :return X,Y: lists with folds
+        """
         kf = KFold(n_splits=n_folds, shuffle=shuffle_flag,random_state=1234567)
         X = np.array(list)
         X_dataset_cv = []
@@ -95,6 +116,10 @@ class Human_Genes_Graph_Analysis:
     @staticmethod
     def MCL(adj_mat,inflation):
         """
+        MCL modularity computation
+        :params adj_mat: array -> adjacency matrix of the graph
+        :param inflation: int
+        :return Q:float -> modularity value 
         """
         count = 0
         result = mc.run_mcl(adj_mat, inflation=inflation)
@@ -106,6 +131,13 @@ class Human_Genes_Graph_Analysis:
     @staticmethod
     def MLC_eval(disease_graph,disease_genes_list,clusters,tol=0):
         """
+        MCL clusters evaluation 
+        :param disease_graph: graph object 
+        :param disease_genes_list: input disease list
+        :param clusters: list
+        :return pmf_cluster_dict_avg: dict with index cluster as key, p-values as values
+        :return enriched_genes_list: list -> enriched clusters list
+        :return enriched_cluster_index: list -> list of the index of the enriched clusters
         """
         pmf_cluster_dict = {}
         for folds_index in range(0,5):
@@ -143,6 +175,14 @@ class Human_Genes_Graph_Analysis:
     # ============================ MCL METRICS EVALUATION
     @staticmethod
     def MCL_evaluation_metrics(disease_graph,dg_list,hs_disease_genes,clusters,enriched_clusters_list):
+        """
+        MCL evaluation 
+        :param disease_graph: graph object
+        :param dg_list: list-> diseases genes
+        :param hs_disease_genes: list
+        :param clusters: list  -> list of clusters
+        :param enriched_clusters_list: -> enriched clsuter list
+        """
         genes_in_all_clusters = []
         TP = 0 
         FP = 0 
@@ -158,7 +198,6 @@ class Human_Genes_Graph_Analysis:
         #number of genes in all enriched cluster which are not seed genes
         FP = len(set(clusters))-TP
         #number of probe seed genes not present in any enriched clusters
-        #TODO: Check this part again!
         FN = len(set(disease_graph.nodes))-len(set(genes_in_all_clusters).intersection(set(hs_disease_genes)))
         print("TP: " + str(TP) + " --- " + "FP: " +str(FP) + " --- " + "FN: " +str(FN))
         precision=(TP/(TP+FP))
@@ -168,7 +207,15 @@ class Human_Genes_Graph_Analysis:
 
     # ============================ RANDOMD WALK WITH RESTART 
     def RWR(self, LCC_sub_graph,disease_genes,restart_prob = 0.75,conv_treshold=1e-6,max_print_items= 10):
-        
+        """
+        Random Walk With Restart Algorithm
+        :param LCC_sub_graph: graph object 
+        :param disease_genes: list 
+        :param restart_prob:int -> restarting prob value
+        :param conv_treshold: float32 -> convergence threshold 
+        :param max_print_items: int -> max printed element in output
+        :return s: list -> ranking of putative genes
+        """
         source = set(disease_genes).intersection(set(LCC_sub_graph.nodes()))
         p_0 = [0]*len(list(LCC_sub_graph.nodes()))
         for source_id in source:
@@ -349,58 +396,6 @@ class Human_Genes_Graph_Analysis:
                 f1_score_n.append((2*pre_n*rec_n)/(pre_n+rec_n))
             except:
                 pass 
-        
-        if print_flag:
-            print("Precision at 50: " + str(round(statistics.mean(precision_50)*100,2)) + " ± " +str(round(statistics.stdev(precision_50)*100,2)))
-            print("Precision at n/10: " + str(round(statistics.mean(precision_n_10)*100,2)) + " ± " +str(round(statistics.stdev(precision_n_10)*100,2)))
-            print("Precision at n/4: " + str(round(statistics.mean(precision_n_4)*100,2)) + " ± " +str(round(statistics.stdev(precision_n_4)*100,2)))
-            print("Precision at n/2: " + str(round(statistics.mean(precision_n_2)*100,2)) + " ± " +str(round(statistics.stdev(precision_n_2)*100,2)))
-            print("Precision at n: " + str(round(statistics.mean(precision_n)*100,2)) + " ± " +str(round(statistics.stdev(precision_n)*100,2)))
-            print("Recall at 50: " + str(round(statistics.mean(recall_50)*100,2)) + " ± " +str(round(statistics.stdev(recall_50)*100,2)))
-            print("Recall at n/10: " + str(round(statistics.mean(recall_n_10)*100,2)) + " ± " +str(round(statistics.stdev(recall_n_10)*100,2)))
-            print("Recall at n/4: " + str(round(statistics.mean(recall_n_4)*100,2)) + " ± " +str(round(statistics.stdev(recall_n_4)*100,2)))
-            print("Recall at n/2: " + str(round(statistics.mean(recall_n_2)*100,2)) + " ± " +str(round(statistics.stdev(recall_n_2)*100,2)))
-            print("Recall at n: " + str(round(statistics.mean(recall_n)*100,2)) + " ± " +str(round(statistics.stdev(recall_n)*100,2)))
-            try:
-                print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_50)*100,2)))
-            except:
-                try:
-                    print("F1 Score at 50: " + str(round(statistics.mean(f1_score_50)*100,2)))
-                except:
-                    print("No values to record F1")
-            try:
-                print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n_10)*100,2)))
-            except:
-                try:
-                    print("F1 Score at n/10: " + str(round(statistics.mean(f1_score_n_10)*100,2)))
-                except:
-                    print("No values to record F1")
-            try:
-                print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n_4)*100,2)))
-            except:
-                try:
-                    print("F1 Score at n/4: " + str(round(statistics.mean(f1_score_n_4)*100,2)))
-                except:
-                    print("No values to record F1")
-            try:
-                print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n_2)*100,2)))
-            except:
-                try:
-                    print("F1 Score at n/2: " + str(round(statistics.mean(f1_score_n_2)*100,2)))
-                except:
-                    print("No values to record F1")
-            try: 
-                print("F1 Score at n: " + str(round(statistics.mean(f1_score_n)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n)*100,2)))
-            except:
-                try:
-                    print("F1 Score at n: " + str(round(statistics.mean(f1_score_n)*100,2)) + " ± " +str(round(statistics.stdev(f1_score_n)*100,2)))
-                except:
-                    print("No values to record F1")
-            print("nDCG at 50: " + str(round(statistics.mean(ndcg_50)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_50)*100,2)))
-            print("nDCG at n/10: " + str(round(statistics.mean(ndcg_n_10)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n_10)*100,2)))
-            print("nDCG at n/4: " + str(round(statistics.mean(ndcg_n_4)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n_4)*100,2)))
-            print("nDCG at n/2: " + str(round(statistics.mean(ndcg_n_2)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n_2)*100,2)))
-            print("nDCG at n: " + str(round(statistics.mean(ndcg_n)*100,2)) + " ± " +str(round(statistics.stdev(ndcg_n)*100,2)))
             
         if save_dataframe: 
   
@@ -467,15 +462,28 @@ class Human_Genes_Graph_Analysis:
     # =========================== Utilities Functions ========================
 
     def list_to_pikle(self,list,name):
+        """
+        Writing list to pickle file
+        :param list: input list
+        :param: name of the output file
+        """
         with open(self.folder_path + 'outputs/' + str(name), 'wb') as f:
             pickle.dump(list, f)
 
     def read_pickle_list(self,name):
+        """
+        Reading list from pickle file
+        :param: name of the output file
+        :return list
+        """
         with open(self.folder_path + 'outputs/' + str(name), 'rb') as f:
             tmp_list = pickle.load(f)
         return tmp_list
 
     def create_empty_dataframe(self,name): 
+        """
+        Creates an empty dataframe to store the results from the evaluation metrics
+        """
         dataframe = {'@': [' ', '  50', ' ', ' ',' ', ' n/10', ' ', ' ',' ', ' n/4', ' ', ' ',' ', ' n/2', ' ', ' ',' ', ' n', ' ', ' ',],
             'Metric': ['P', 'R', 'F1', 'nDCG','P', 'R', 'F1', 'nDCG','P', 'R', 'F1', 'nDCG','P', 'R', 'F1', 'nDCG','P', 'R', 'F1', 'nDCG']
             }  
@@ -483,16 +491,34 @@ class Human_Genes_Graph_Analysis:
         dataframe.to_pickle(self.folder_path + 'outputs/pkl_datasets/' + str(name) + ".pkl")
 
     def read_pkl_dataset(self,name):
+        """
+        Reading dataset from pickle file
+        :param: name of the file
+        :return dataframe
+        """
         dataframe = pd.read_pickle(self.folder_path + 'outputs/pkl_datasets/' + str(name) + ".pkl")
         return dataframe
 
     def write_pkl_dataset(self,dataframe,name):
+        """
+        Writing dataset to pickle file
+        :param list: input dataframe
+        :param: name of the output file
+        """
         self.results_df = dataframe.to_pickle(self.folder_path + 'outputs/pkl_datasets/' + str(name)+".pkl")
         return self.results_df
 
     def dataframe_to_html(self,dataframe):
+        """
+        Converting dataframe to html file
+        :param dataframe: dataframe -> input to save
+        """
         dataframe.to_html(self.folder_path + 'outputs/results_table/' + self.disease_ID +".html",index=True)
 
     
     def dataframe_to_latex(self,dataframe):
+        """
+        Encodes input dataframe into latex table
+        :param dataframe: dataframe -> input to encode
+        """
         print(dataframe.to_latex(index=False)) 
