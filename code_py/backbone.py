@@ -261,6 +261,13 @@ class Human_Genes_Graph_Analysis:
     # ============================ METRICS EVALUATION  ENGINE
 
     def ndcg(self, predicted_list, true_list, n):
+        """
+        normalized discounted cumulative gain calculation at top n position
+        :param predicted_list: list -> contains the predicted disease genes/putative genes 
+        :param true_list: list -> ground truth of the disease that contain true disease genes
+        :param n:int -> top n position 
+        :return dcg/idcg: number -> nDCG score
+        """
         dcg = 0
         idcg = 0
         for i in range(n):
@@ -270,6 +277,14 @@ class Human_Genes_Graph_Analysis:
         return dcg/idcg
     
     def return_pre_recall(self, predicted_nodes, ds_genes_train, ds_genes_test, n):
+        """
+        precision and recall calculation at top n position
+        :param predicted_nodes: list -> contains the predicted disease genes/putative genes 
+        :param ds_genes_train: list -> train dataset of the seed genes
+        :param ds_genes_test: list -> test dataset of the seed genes
+        :param n:int -> top n position 
+        :return precision and recall values for top 50, n/10, n/4, n/2 and n positions
+        """
         TP_50   = len(set(predicted_nodes[:50]).intersection(set(ds_genes_test)))
         TP_n_10 = len(set(predicted_nodes[:n//10]).intersection(set(ds_genes_test)))
         TP_n_4  = len(set(predicted_nodes[:n//4]).intersection(set(ds_genes_test)))
@@ -291,7 +306,15 @@ class Human_Genes_Graph_Analysis:
         return TP_50/(TP_50+FP_50), TP_n_10/(TP_n_10+FP_n_10), TP_n_4/(TP_n_4+FP_n_4), TP_n_2/(TP_n_2+FP_n_2), TP_n/(TP_n+FP_n), TP_50/(TP_50+FN_50), TP_n_10/(TP_n_10+FN_n_10), TP_n_4/(TP_n_4+FN_n_4), TP_n_2/(TP_n_2+FN_n_2), TP_n/(TP_n+FN_n) 
 
     def return_metrics(self, method, pgenes_sub_graph, hs_disease_genes, ds_genes_train, ds_genes_test, print_flag=True,save_dataframe=True, extended_val = False):
-        
+        """
+        all metrics calculation for the ranked prediction
+        :param method: string -> ["DIAMOnD", "DiaBLE", "Cytoscape", "RWR"] 
+        :param hs_disease_genes: list -> contains the true disease genes
+        :param ds_genes_train: list -> train dataset of the seed genes
+        :param ds_genes_test: list -> test dataset of the seed genes
+        :param extended_val:boolean -> True if extended validation part will be, False otherwise
+        :return: dataframe -> contains precision, recall, F1 score and nDCG values for top 50, n/10, n/4, n/2 and n positions for a given disease
+        """    
         precision_50,precision_n_10,precision_n_4,precision_n_2,precision_n = [],[],[],[],[]
         recall_50, recall_n_10, recall_n_4, recall_n_2, recall_n = [],[],[],[],[]
         f1_score_50, f1_score_n_10, f1_score_n_4, f1_score_n_2, f1_score_n = [],[],[],[],[]
