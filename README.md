@@ -22,20 +22,39 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
    
 ### Folder Tree
 ```bash
- └── Final_Project
-    ├── README.md
-    ├── data
-    │   ├── ImageClasses_FSC147.txt
-    │   ├── Train_Test_Val_FSC_147.json
-    │   ├── annotation_FSC147_384.json
-    │   └── pretrainedModels
-    │       └── FamNet_Save1.pth
-    ├── funcs.py
-    ├── interpretability_captum.py
-    ├── main.ipynb
-    ├── model.py
-    ├── model_explainability.py
-    └── utils_ltce.py
+├── code_py
+│   ├── DIAMOnD.py
+│   ├── __init__.py
+│   └── backbone.py
+├── main.ipynb
+└── outputs
+    ├── MLC_modularity
+    ├── pkl_datasets
+    │   ├── C0020796.pkl
+    │   ├── C0079744.pkl
+    │   ├── C0086565.pkl
+    │   ├── C0205644.pkl
+    │   ├── C0238198.pkl
+    │   ├── C0860207.pkl
+    │   ├── C1510586.pkl
+    │   ├── C1959583.pkl
+    │   ├── C3714756.pkl
+    │   ├── C4316881.pkl
+    │   └── C4505456.pkl
+    └── results_table
+        ├── C0020796.html
+        ├── C0079744.html
+        ├── C0086565.html
+        ├── C0205644.html
+        ├── C0238198.html
+        ├── C0860207.html
+        ├── C1510586.html
+        ├── C1959583.html
+        ├── C3714756.html
+        ├── C4316881.html
+        └── C4505456.html
+
+4 directories, 27 files
 ```
 
    #### Image Credits 
