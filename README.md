@@ -15,6 +15,7 @@ Alessandro Quattrociocchi, Tansel Simsek<b> <br />
   
 
 ## Abstract
+In this report, we will interview different methodologies to investigate protein-protein interactions and its' role in the disease gene association. The aim is to find the most useful algorithm to extract correct genes to trace disease existence. We consider 5 different diseases, 5 different algorithms which are MCL (Markov Cluster), DIAMOnD (a disease module detection), DiaBLE, heat diffusion with Cytoscape bioinformatics software and Random Walk with Restart, and some of evaluation metrics such as precision, recall, F1 score and nDCG(normalized discounted cumulative gain). Also, we tried 6 additional diseases which all the results can be found in the additional pdf. As a final result, we investigated the most suitable disease as Autism Spectrum Disorder and the most powerful algorithm as DiaBLE with further enrichment analysis.
 
 <p align="center">
 <img src=https://github.com/BI-TeamProject/Final_project/blob/main/Further%20Material/git_images/ppi_image.jpg width="500"/ >
